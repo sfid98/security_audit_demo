@@ -1,25 +1,27 @@
-name: AI Security Auditor Test
+name: Security Audit Pipeline
 
 on:
-  push:                 # Scatta ad ogni push
-    branches: [ "main", "master", "feature/*" ]
-  pull_request:         # Scatta ad ogni PR
-  workflow_dispatch:    # Permette avvio manuale
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
 
 jobs:
-  audit:
-    runs-on: ubuntu-latest  # <--- CORRETTO: trattino centrale, non basso!
-
-    permissions:
-      contents: read      
-      pull-requests: write
+  ai-check:
+    runs-on: ubuntu-latest
     
+    # Permessi per commentare la PR
+    permissions:
+      contents: read
+      pull-requests: write
+
+    # Servizio Neo4j (Database effimero)
     services:
       neo4j:
         image: neo4j:latest
         env:
           NEO4J_AUTH: neo4j/password
-          NEO4J_PLUGINS: '["apoc"]' 
+          NEO4J_PLUGINS: '["apoc"]'
         ports:
           - 7474:7474
           - 7687:7687
@@ -30,25 +32,24 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code (Scarica il codice vittima)
+        uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+      - name: Run AI Auditor (Dockerized)
+        # Qui usiamo la TUA immagine Docker creata nella Repo A
+        # --network host: Fondamentale per vedere Neo4j e il Tunnel Ngrok dell'host
+        # -v ${{ github.workspace }}:/target_code: Montiamo il codice vittima dentro il container
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}:/target_code \
+            -e SCAN_TARGET="/target_code" \
+            -e NEO4J_URI="bolt://localhost:7687" \
+            -e NEO4J_PASSWORD="password" \
+            -e OLLAMA_BASE_URL="${{ secrets.OLLAMA_PUBLIC_URL }}" \
+            tuousername/ai-security-auditor:latest > report.md
 
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run AI Audit
-        env:
-          NEO4J_URI: bolt://localhost:7687
-          NEO4J_PASSWORD: password
-          NEO4J_USERNAME: neo4j
-          OLLAMA_BASE_URL: ${{ secrets.OLLAMA_PUBLIC_URL }}
-        run: python ci_runner.py > report.md
-
-      - name: Upload Report
+      - name: Upload Report Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
