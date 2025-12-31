@@ -47,7 +47,7 @@ jobs:
             -e NEO4J_URI="bolt://localhost:7687" \
             -e NEO4J_PASSWORD="password" \
             -e OLLAMA_BASE_URL="${{ secrets.OLLAMA_PUBLIC_URL }}" \
-            tuousername/ai-security-auditor:latest > report.md
+            sfidanzadev/ai-security-auditor:latest > report.md
 
       - name: Upload Report Artifact
         uses: actions/upload-artifact@v4
