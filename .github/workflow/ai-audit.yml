@@ -1,0 +1,57 @@
+name: AI Security Auditor Test
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # Per poterlo lanciare anche a mano
+
+jobs:
+  audit:
+    runs_on: ubuntu-latest
+    services:
+      neo4j:
+        image: neo4j:latest
+        env:
+          NEO4J_AUTH: neo4j/password
+          NEO4J_PLUGINS: '["apoc"]' 
+        ports:
+          - 7474:7474
+          - 7687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p password 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run AI Audit
+        env:
+          NEO4J_URI: bolt://localhost:7687
+          NEO4J_PASSWORD: password
+          NEO4J_USERNAME: neo4j
+          # Qui sta il trucco: usiamo il secret che imposterai tra poco
+          OLLAMA_BASE_URL: ${{ secrets.OLLAMA_PUBLIC_URL }}
+        run: python ci_runner.py > report.md
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report
+          path: report.md
+
+      - name: Comment on PR
+        uses: thollander/actions-comment-pull-request@v2
+        if: github.event_name == 'pull_request'
+        with:
+          filePath: report.md
