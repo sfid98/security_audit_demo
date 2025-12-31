@@ -1,13 +1,15 @@
 name: AI Security Auditor Test
 
 on:
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch: # Per poterlo lanciare anche a mano
+  push:                 # Scatta ad ogni push
+    branches: [ "main", "master", "feature/*" ]
+  pull_request:         # Scatta ad ogni PR
+  workflow_dispatch:    # Permette avvio manuale
 
 jobs:
   audit:
-    runs_on: ubuntu-latest
+    runs-on: ubuntu-latest  # <--- CORRETTO: trattino centrale, non basso!
+    
     services:
       neo4j:
         image: neo4j:latest
@@ -39,7 +41,6 @@ jobs:
           NEO4J_URI: bolt://localhost:7687
           NEO4J_PASSWORD: password
           NEO4J_USERNAME: neo4j
-          # Qui sta il trucco: usiamo il secret che imposterai tra poco
           OLLAMA_BASE_URL: ${{ secrets.OLLAMA_PUBLIC_URL }}
         run: python ci_runner.py > report.md
 
