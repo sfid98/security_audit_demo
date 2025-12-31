@@ -1,0 +1,63 @@
+name: Security Audit Pipeline
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  ai-check:
+    runs-on: ubuntu-latest
+    
+    # Permessi per commentare la PR
+    permissions:
+      contents: read
+      pull-requests: write
+
+    # Servizio Neo4j (Database effimero)
+    services:
+      neo4j:
+        image: neo4j:latest
+        env:
+          NEO4J_AUTH: neo4j/password
+          NEO4J_PLUGINS: '["apoc"]'
+        ports:
+          - 7474:7474
+          - 7687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p password 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code (Scarica il codice vittima)
+        uses: actions/checkout@v3
+
+      - name: Run AI Auditor (Dockerized)
+        # Qui usiamo la TUA immagine Docker creata nella Repo A
+        # --network host: Fondamentale per vedere Neo4j e il Tunnel Ngrok dell'host
+        # -v ${{ github.workspace }}:/target_code: Montiamo il codice vittima dentro il container
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}:/target_code \
+            -e SCAN_TARGET="/target_code" \
+            -e NEO4J_URI="bolt://localhost:7687" \
+            -e NEO4J_PASSWORD="password" \
+            -e OLLAMA_BASE_URL="${{ secrets.OLLAMA_PUBLIC_URL }}" \
+            sfidanzadev/ai-security-auditor:latest > report.md
+
+      - name: Upload Report Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report
+          path: report.md
+
+      - name: Comment on PR
+        uses: thollander/actions-comment-pull-request@v2
+        if: always()
+        with:
+          filePath: report.md

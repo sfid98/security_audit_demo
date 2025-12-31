@@ -1,6 +1,0 @@
-neo4j
-langchain
-langchain-ollama
-langchain-community
-langchain-openai
-python-dotenv
