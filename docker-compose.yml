@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  neo4j:
+    image: neo4j:latest
+    container_name: code_graph_db
+    ports:
+      - "7474:7474" # HTTP per il browser (Neo4j Browser)
+      - "7687:7687" # Bolt port per la connessione Python
+    environment:
+      NEO4J_AUTH: neo4j/password_segreta # Cambiala!
+      NEO4J_PLUGINS: '["apoc"]' # Plugin utile per procedure avanzate
