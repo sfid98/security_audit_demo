@@ -6,7 +6,7 @@ from security_audit import generate_audit_report
 # Configurazioni da Env Vars (Standard in CI/CD)
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687") # 'neo4j' è l'hostname del servizio nel container
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
-REPO_PATH = "." # Dove monteremo il codice
+REPO_PATH = "./codebase/" # Dove monteremo il codice
 
 def main():
     print("🚀 AVVIO AI SECURITY AUDITOR PIPELINE")

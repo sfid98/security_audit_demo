@@ -12,13 +12,14 @@ dotenv.load_dotenv()
 URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 AUTH = (os.getenv("NEO4J_USERNAME", "neo4j"), os.getenv("NEO4J_PASSWORD", "password_segreta"))
 SOURCE_DIR = "./my_legacy_project" 
+ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 # CAMBIAMENTO 2: Inizializza Embeddings con Ollama
 # Usa 'nomic-embed-text' (768 dimensioni) o 'llama3' (4096 dim - molto pesante per embedding)
 # nomic-embed-text è lo standard open source attuale per RAG.
 embeddings_model = OllamaEmbeddings(
     model="nomic-embed-text", 
-    base_url="http://localhost:11434" # Default di Ollama
+    base_url=ollama_url # Default di Ollama
 )
 
 class CodeIngestor:
