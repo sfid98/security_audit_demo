@@ -8,6 +8,7 @@ from langchain_classic.prompts import PromptTemplate
 dotenv.load_dotenv()
 URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 AUTH = (os.getenv("NEO4J_USERNAME", "neo4j"), os.getenv("NEO4J_PASSWORD", "password_segreta"))
+ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 # 1. Definizione dei "Sink" (Concetti pericolosi da cercare)
 RISKY_TOPICS = [
@@ -18,8 +19,8 @@ RISKY_TOPICS = [
 ]
 
 # 2. Configurazione LLM e Vector Store (Locale)
-embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url="http://localhost:11434")
-llm = ChatOllama(model="mistral", temperature=0, base_url="http://localhost:11434")
+embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=ollama_url)
+llm = ChatOllama(model="mistral", temperature=0, base_url=ollama_url)
 
 # Query GraphRAG specializzata per la sicurezza
 # Cerca chi chiama la funzione vulnerabile per capire se è esposta

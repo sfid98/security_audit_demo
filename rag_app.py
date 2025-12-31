@@ -14,6 +14,7 @@ dotenv.load_dotenv()
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USERNAME = os.getenv("NEO4J_USERNAME", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password_segreta")
+ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 # 1. SETUP DEL RETRIEVER IBRIDO (GraphRAG)
 # La query Cypher rimane IDENTICA. È la logica del DB, non dipende dall'LLM.
@@ -37,7 +38,7 @@ RETURN
 # DEVE essere lo stesso modello usato in ingest.py (nomic-embed-text)
 embeddings = OllamaEmbeddings(
     model="nomic-embed-text",
-    base_url="http://localhost:11434"
+    base_url=ollama_url
 )
 
 print("Connessione a Neo4j e inizializzazione Vector Store...")
